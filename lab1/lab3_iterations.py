@@ -116,4 +116,4 @@ def run(path: str | Path) -> None:
 
 
 if __name__ == "__main__":
-    run(sys.argv[1] if len(sys.argv) > 1 else Path("inputs/3.json"))
+    run(sys.argv[1] if len(sys.argv) > 1 else Path(__file__).parent / "inputs/3.json")
