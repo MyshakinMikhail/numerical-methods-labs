@@ -1,7 +1,7 @@
 import unittest
 
-from equation import f, newton as equation_newton, simple_iteration as equation_iteration
-from system import newton as system_newton, residual, simple_iteration as system_iteration
+from lab2_1_nonlinear_equation import f, newton as equation_newton, simple_iteration as equation_iteration
+from lab2_2_nonlinear_system import newton as system_newton, residual, simple_iteration as system_iteration
 
 
 class NonlinearMethodsTests(unittest.TestCase):

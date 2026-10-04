@@ -26,8 +26,8 @@ x₁²/9 + x₂²/2.25 − 1 = 0,
 Из корня репозитория:
 
 ```bash
-python3 lab2/equation.py
-python3 lab2/system.py
+python3 lab2/lab2_1_nonlinear_equation.py
+python3 lab2/lab2_2_nonlinear_system.py
 ```
 
 Чтобы изменить точность или начальное приближение, отредактируйте `lab2/inputs/1.json` или `lab2/inputs/2.json`. Путь к другому JSON можно передать первым аргументом программы.
