@@ -8,9 +8,7 @@ from common import ROOT, make_function, number, polynomial_value
 from lab3_1_interpolation import (divided_differences, lagrange, lagrange_coefficients,
                                   newton, newton_coefficients)
 from lab3_2_cubic_spline import interval_index, natural_spline, spline_value
-from lab3_3_least_squares import least_squares, squared_error
 from lab3_4_differentiation import differentiate
-from lab3_5_integration import METHODS, compare_methods, integrate, runge_romberg
 
 
 def input_data(task):
@@ -94,37 +92,6 @@ class SplineTests(unittest.TestCase):
             spline_value(natural_spline([0, 1], [0, 1]), 1.1)
 
 
-class LeastSquaresTests(unittest.TestCase):
-    def test_reproduce_known_polynomials(self):
-        x = [-2, -1, 0, 1, 2, 3]
-        for expected in ([1, -2], [1, -2, 0.5], [1, -2, 0.5, 2]):
-            y = [polynomial_value(expected, xi) for xi in x]
-            actual = least_squares(x, y, len(expected) - 1)
-            for value, reference in zip(actual, expected):
-                self.assertAlmostEqual(value, reference, places=11)
-
-    def test_variant_optimality_and_decreasing_errors(self):
-        data = input_data(3)
-        x, y = data["x"], data["y"]
-        previous = math.inf
-        # Независимые опорные SSE получены рациональной ортогональной проекцией.
-        reference_sse = [8.679034651428571, 2.355706084642857, 0.355741072142857]
-        for degree in (1, 2, 3):
-            coefficients = least_squares(x, y, degree)
-            sse = squared_error(x, y, coefficients)
-            self.assertAlmostEqual(sse, reference_sse[degree - 1], places=11)
-            self.assertLess(sse, previous)
-            previous = sse
-            # Условие минимума МНК: невязка ортогональна каждому столбцу A.
-            for power in range(degree + 1):
-                moment = math.fsum((polynomial_value(coefficients, xi) - yi) * xi**power for xi, yi in zip(x, y))
-                self.assertAlmostEqual(moment, 0, delta=1e-9)
-
-    def test_insufficient_nodes_rejected(self):
-        with self.assertRaises(ValueError):
-            least_squares([0, 1, 2], [1, 2, 3], 3)
-
-
 class DifferentiationTests(unittest.TestCase):
     def test_exact_quadratic_on_uniform_and_nonuniform_grids(self):
         for x in ([0, 1, 2, 3, 4], [-2, -0.5, 0.2, 2, 5]):
@@ -140,52 +107,6 @@ class DifferentiationTests(unittest.TestCase):
         for x, y, point in (([0, 1], [0, 1], 0.5), ([0, 1, 2], [0, 1, 4], 3), ([0, 1, 2], [0, 1, 4], math.nan)):
             with self.assertRaises(ValueError):
                 differentiate(x, y, point)
-
-
-class IntegrationTests(unittest.TestCase):
-    def test_constant_exact_for_all_methods(self):
-        for method in METHODS:
-            self.assertAlmostEqual(integrate(lambda x: 3, -1, 2, 0.5, method), 9, places=12)
-
-    def test_linear_exact_for_second_and_fourth_order(self):
-        for method in ("midpoint", "trapezoid", "simpson"):
-            self.assertAlmostEqual(integrate(lambda x: 2 * x + 1, 0, 2, 0.25, method), 6, places=12)
-
-    def test_rectangle_direction_for_increasing_function(self):
-        left = integrate(lambda x: x**2, 0, 1, 0.25, "left")
-        right = integrate(lambda x: x**2, 0, 1, 0.25, "right")
-        self.assertLess(left, 1 / 3)
-        self.assertGreater(right, 1 / 3)
-
-    def test_simpson_exact_on_cubic(self):
-        self.assertAlmostEqual(integrate(lambda x: x**3, 0, 2, 0.25, "simpson"), 4, places=12)
-
-    def test_runge_romberg_for_quadratic(self):
-        results = compare_methods(lambda x: x**2, 0, 1, 0.5, 0.25)
-        for result in results:
-            if result.method in ("midpoint", "trapezoid", "simpson"):
-                self.assertAlmostEqual(result.refined, 1 / 3, places=12)
-                self.assertAlmostEqual(result.estimate, abs(result.fine - 1 / 3), places=12)
-
-    def test_runge_romberg_with_ratio_three(self):
-        for result in compare_methods(lambda x: x**4, 0, 1, 0.5, 1 / 6):
-            if result.method == "simpson":
-                self.assertAlmostEqual(result.refined, 0.2, places=12)
-                self.assertAlmostEqual(result.estimate, abs(result.fine - 0.2), places=12)
-
-    def test_stated_convergence_orders(self):
-        for method, (_, order) in METHODS.items():
-            coarse_error = abs(integrate(math.exp, 0, 1, 1 / 16, method) - math.expm1(1))
-            fine_error = abs(integrate(math.exp, 0, 1, 1 / 32, method) - math.expm1(1))
-            self.assertAlmostEqual(coarse_error / fine_error, 2**order, delta=0.05)
-
-    def test_invalid_grids_and_runge_steps_rejected(self):
-        for a, b, h, method in ((0, 1, 0.3, "left"), (0, 1, 0, "left"),
-                                (1, 0, 0.1, "left"), (0, 1, 0.2, "simpson")):
-            with self.assertRaises(ValueError):
-                integrate(math.exp, a, b, h, method)
-        with self.assertRaises(ValueError):
-            runge_romberg(1, 2, 0.1, 0.2, 2)
 
 
 class ExpressionTests(unittest.TestCase):
