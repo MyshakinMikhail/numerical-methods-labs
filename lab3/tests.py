@@ -9,6 +9,7 @@ from lab3_1_interpolation import (divided_differences, lagrange, lagrange_coeffi
                                   newton, newton_coefficients)
 from lab3_2_cubic_spline import interval_index, natural_spline, spline_value
 from lab3_4_differentiation import differentiate
+from lab3_3_least_squares import errors, least_squares, solve_system
 
 
 def input_data(task):
@@ -107,6 +108,40 @@ class DifferentiationTests(unittest.TestCase):
         for x, y, point in (([0, 1], [0, 1], 0.5), ([0, 1, 2], [0, 1, 4], 3), ([0, 1, 2], [0, 1, 4], math.nan)):
             with self.assertRaises(ValueError):
                 differentiate(x, y, point)
+
+
+class LeastSquaresTests(unittest.TestCase):
+    def test_exact_polynomials(self):
+        x = [-2, -0.5, 0, 0.7, 2, 3]
+        for expected in ([2, -3], [2, -3, 0.5], [2, -3, 0.5, 0.25]):
+            y = [polynomial_value(expected, xi) for xi in x]
+            actual = least_squares(x, y, len(expected) - 1)
+            for a, e in zip(actual, expected):
+                self.assertAlmostEqual(a, e, places=11)
+            self.assertLess(errors(x, y, actual)[1], 1e-24)
+
+    def test_variant_and_residual_orthogonality(self):
+        data = input_data(3)
+        x, y = data["x"], data["y"]
+        reference_mse = [1.446505775238095, 0.3926176807738095, 0.05929017869047619]
+        for degree, expected in enumerate(reference_mse, start=1):
+            coefficients = least_squares(x, y, degree)
+            sse, mse = errors(x, y, coefficients)
+            self.assertAlmostEqual(mse, expected, places=12)
+            self.assertAlmostEqual(sse, len(x) * mse, places=12)
+            for power in range(degree + 1):
+                residual = math.fsum((polynomial_value(coefficients, xi) - yi) * xi**power
+                                     for xi, yi in zip(x, y))
+                self.assertLess(abs(residual), 1e-10)
+
+    def test_pivoting_and_rejected_data(self):
+        self.assertEqual(solve_system([[0, 1], [1, 0]], [2, 3]), [3, 2])
+        for x, y, degree in (([0, 1, 2], [0, 1, 4], 3), ([0, 0], [1, 2], 1),
+                             ([0, 1], [1, math.nan], 1), ([0, 1], [1, 2], -1)):
+            with self.assertRaises(ValueError):
+                least_squares(x, y, degree)
+        with self.assertRaises(ValueError):
+            solve_system([[1, 2], [2, 4]], [1, 2])
 
 
 class ExpressionTests(unittest.TestCase):
