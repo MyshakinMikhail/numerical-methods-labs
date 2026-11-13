@@ -43,4 +43,4 @@ S''(3.6) = 0.000000000000e+00
 0.900000  0.000e+00   0.000e+00  0.000e+00
 1.800000  0.000e+00  -1.110e-16  0.000e+00
 2.700000  0.000e+00   4.441e-16  8.882e-16
-График: lab3/graphs/spline.svg
+График: /Users/myshakinm/study/numerical_methods/lab3/graphs/spline.svg

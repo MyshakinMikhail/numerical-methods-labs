@@ -32,7 +32,7 @@ N(x*) = 1.233655403735
 Абсолютная погрешность Ньютона  |f(x*) - N(x*)| = 2.357185673275e-02
 Разность L(x*) - N(x*) = 0.000000000000e+00
 Модуль разности |L(x*) - N(x*)| = 0.000000000000e+00
-График: lab3/graphs/interpolation_a.svg
+График: /Users/myshakinm/study/numerical_methods/lab3/graphs/interpolation_a.svg
 
 3.1. Набор б; f(x) = tan(x) + x
 Исходная таблица:
@@ -67,4 +67,4 @@ N(x*) = 1.174299451376
 Абсолютная погрешность Ньютона  |f(x*) - N(x*)| = 8.292780909110e-02
 Разность L(x*) - N(x*) = -4.440892098501e-16
 Модуль разности |L(x*) - N(x*)| = 4.440892098501e-16
-График: lab3/graphs/interpolation_b.svg
+График: /Users/myshakinm/study/numerical_methods/lab3/graphs/interpolation_b.svg
