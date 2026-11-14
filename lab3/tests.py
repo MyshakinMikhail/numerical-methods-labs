@@ -146,6 +146,39 @@ class LeastSquaresTests(unittest.TestCase):
 
 
 class IntegrationTests(unittest.TestCase):
+    def test_variant_quadratures_and_analytic_value(self):
+        data = input_data(5)
+        function = make_function(data["function"])
+        a, b, h1, h2 = (number(data[key]) for key in ("a", "b", "h1", "h2"))
+        self.assertEqual((a, b, h1, h2), (0, 2, 0.5, 0.25))
+        exact = number(data["exact_value"])
+        self.assertAlmostEqual(exact, 0.108371623417488879696749395485, places=15)
+        primitive = make_function(data["antiderivative"])
+        self.assertAlmostEqual(primitive(b) - primitive(a), exact, places=15)
+        # Опорные квадратуры независимо рассчитаны в рациональной арифметике.
+        # Для каждого метода: I(h1), I(h2), I_RR и оценка ошибки I(h2).
+        reference = {
+            "left": (0.115529041778704, 0.112114858787527,
+                     0.108700675796349, 0.003414182991177),
+            "right": (0.099904041778704, 0.104302358787527,
+                      0.108700675796349, 0.004398317008823),
+            "midpoint": (0.108700675796349, 0.108453226050714,
+                         0.108370742802169, 0.000082483248545),
+            "trapezoid": (0.107716541778704, 0.108208608787527,
+                          0.108372631123801, 0.000164022336274),
+            "simpson": (0.108389212567684, 0.108372631123801,
+                        0.108371525694209, 0.000001105429592),
+        }
+        results = compare_methods(function, a, b, h1, h2)
+        for result in results:
+            with self.subTest(method=result.method):
+                actual = (result.coarse, result.fine, result.refined, result.estimate)
+                for value, expected in zip(actual, reference[result.method]):
+                    self.assertAlmostEqual(value, expected, places=14)
+        for attribute in ("fine", "refined"):
+            best = min(results, key=lambda result: abs(getattr(result, attribute) - exact))
+            self.assertEqual(best.method, "simpson")
+
     def test_constant_exact_for_all_methods(self):
         for method in METHODS:
             self.assertAlmostEqual(integrate(lambda x: 3, -1, 2, 0.5, method), 9, places=12)

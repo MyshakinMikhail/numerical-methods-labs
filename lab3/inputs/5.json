@@ -1,10 +1,10 @@
 {
-  "note": "Заполнить по условию варианта 14 для 3.5. antiderivative — первообразная, exact_value — точный интеграл; достаточно одного из них, если он известен.",
-  "function": null,
-  "a": null,
-  "b": null,
-  "h1": null,
-  "h2": null,
-  "antiderivative": null,
-  "exact_value": null
+  "note": "Вариант 14 из P_3_5.doc: интеграл 1/(x^4 + 16) от 0 до 2, h1 = 0.5, h2 = 0.25.",
+  "function": "1/(x**4 + 16)",
+  "a": 0,
+  "b": 2,
+  "h1": 0.5,
+  "h2": 0.25,
+  "antiderivative": "log((x**2 + 2*sqrt(2)*x + 4)/(x**2 - 2*sqrt(2)*x + 4))/(32*sqrt(2)) + (atan(x/sqrt(2) + 1) + atan(x/sqrt(2) - 1))/(16*sqrt(2))",
+  "exact_value": "(pi + 2*log(1 + sqrt(2)))/(32*sqrt(2))"
 }
