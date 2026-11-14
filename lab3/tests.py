@@ -9,6 +9,7 @@ from lab3_1_interpolation import (divided_differences, lagrange, lagrange_coeffi
                                   newton, newton_coefficients)
 from lab3_2_cubic_spline import interval_index, natural_spline, spline_value
 from lab3_4_differentiation import differentiate
+from lab3_5_integration import METHODS, compare_methods, integrate, runge_romberg
 from lab3_3_least_squares import errors, least_squares, solve_system
 
 
@@ -142,6 +143,52 @@ class LeastSquaresTests(unittest.TestCase):
                 least_squares(x, y, degree)
         with self.assertRaises(ValueError):
             solve_system([[1, 2], [2, 4]], [1, 2])
+
+
+class IntegrationTests(unittest.TestCase):
+    def test_constant_exact_for_all_methods(self):
+        for method in METHODS:
+            self.assertAlmostEqual(integrate(lambda x: 3, -1, 2, 0.5, method), 9, places=12)
+
+    def test_linear_exact_for_second_and_fourth_order(self):
+        for method in ("midpoint", "trapezoid", "simpson"):
+            self.assertAlmostEqual(integrate(lambda x: 2 * x + 1, 0, 2, 0.25, method), 6, places=12)
+
+    def test_rectangle_direction_for_increasing_function(self):
+        left = integrate(lambda x: x**2, 0, 1, 0.25, "left")
+        right = integrate(lambda x: x**2, 0, 1, 0.25, "right")
+        self.assertLess(left, 1 / 3)
+        self.assertGreater(right, 1 / 3)
+
+    def test_simpson_exact_on_cubic(self):
+        self.assertAlmostEqual(integrate(lambda x: x**3, 0, 2, 0.25, "simpson"), 4, places=12)
+
+    def test_runge_romberg_for_quadratic(self):
+        results = compare_methods(lambda x: x**2, 0, 1, 0.5, 0.25)
+        for result in results:
+            if result.method in ("midpoint", "trapezoid", "simpson"):
+                self.assertAlmostEqual(result.refined, 1 / 3, places=12)
+                self.assertAlmostEqual(result.estimate, abs(result.fine - 1 / 3), places=12)
+
+    def test_runge_romberg_with_ratio_three(self):
+        for result in compare_methods(lambda x: x**4, 0, 1, 0.5, 1 / 6):
+            if result.method == "simpson":
+                self.assertAlmostEqual(result.refined, 0.2, places=12)
+                self.assertAlmostEqual(result.estimate, abs(result.fine - 0.2), places=12)
+
+    def test_stated_convergence_orders(self):
+        for method, (_, order) in METHODS.items():
+            coarse_error = abs(integrate(math.exp, 0, 1, 1 / 16, method) - math.expm1(1))
+            fine_error = abs(integrate(math.exp, 0, 1, 1 / 32, method) - math.expm1(1))
+            self.assertAlmostEqual(coarse_error / fine_error, 2**order, delta=0.05)
+
+    def test_invalid_grids_and_runge_steps_rejected(self):
+        for a, b, h, method in ((0, 1, 0.3, "left"), (0, 1, 0, "left"),
+                                (1, 0, 0.1, "left"), (0, 1, 0.2, "simpson")):
+            with self.assertRaises(ValueError):
+                integrate(math.exp, a, b, h, method)
+        with self.assertRaises(ValueError):
+            runge_romberg(1, 2, 0.1, 0.2, 2)
 
 
 class ExpressionTests(unittest.TestCase):
